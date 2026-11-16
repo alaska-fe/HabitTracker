@@ -15,7 +15,6 @@
 
     <Grid Padding="{StaticResource PagePadding}" RowDefinitions="Auto,Auto,*" RowSpacing="{StaticResource SpaceM}">
 
-        <!-- Баннер ошибки N09 -->
         <Border Grid.Row="0" Style="{StaticResource BannerBorderStyle}" IsVisible="{Binding HasError}">
             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="{StaticResource SpaceM}">
                 <Label Grid.Column="0" Text="{Binding ErrorMessage}" VerticalOptions="Center" />
@@ -25,12 +24,10 @@
             </Grid>
         </Border>
 
-        <!-- Строка-сводка -->
         <Label Grid.Row="1" Text="{Binding SummaryText}"
                Style="{StaticResource SecondaryLabelStyle}"
                IsVisible="{Binding HasItems}" />
 
-        <!-- Список -->
         <RefreshView Grid.Row="2"
                      IsRefreshing="{Binding IsLoading, Mode=TwoWay}"
                      Command="{Binding LoadCommand}">
@@ -61,11 +58,17 @@
                                 </SwipeItems>
                             </SwipeView.RightItems>
 
-                            <Border Style="{StaticResource CardBorderStyle}">
+                            <Border Style="{StaticResource CardBorderStyle}"
+                                    SemanticProperties.Description="Открыть детали привычки">
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer
+                                        Command="{Binding BindingContext.OpenDetailsCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}"
+                                        CommandParameter="{Binding .}" />
+                                </Border.GestureRecognizers>
+
                                 <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto,Auto,Auto"
                                       ColumnSpacing="{StaticResource SpaceM}" RowSpacing="{StaticResource SpaceS}">
 
-                                    <!-- Иконка-круг -->
                                     <Border Grid.Column="0" Grid.RowSpan="4" VerticalOptions="Center"
                                             WidthRequest="{StaticResource IconCircleSize}"
                                             HeightRequest="{StaticResource IconCircleSize}"
@@ -79,11 +82,9 @@
                                                HorizontalOptions="Center" VerticalOptions="Center" />
                                     </Border>
 
-                                    <!-- Название -->
                                     <Label Grid.Column="1" Grid.Row="0" Text="{Binding Name}"
                                            Style="{StaticResource TitleLabelStyle}" LineBreakMode="TailTruncation" />
 
-                                    <!-- Серия / N05 -->
                                     <Label Grid.Column="1" Grid.Row="1" Text="{Binding StreakText}"
                                            Style="{StaticResource SecondaryLabelStyle}">
                                         <Label.Triggers>
@@ -94,7 +95,6 @@
                                         </Label.Triggers>
                                     </Label>
 
-                                    <!-- Прогресс -->
                                     <Grid Grid.Column="1" Grid.Row="2" ColumnDefinitions="*,Auto"
                                           ColumnSpacing="{StaticResource SpaceS}">
                                         <ProgressBar Grid.Column="0" Progress="{Binding Progress}"
@@ -105,14 +105,12 @@
                                                Style="{StaticResource SecondaryLabelStyle}" VerticalOptions="Center" />
                                     </Grid>
 
-                                    <!-- Отметка -->
                                     <Button Grid.Column="1" Grid.Row="3" Text="{Binding ButtonText}"
                                             HorizontalOptions="Start"
                                             Command="{Binding BindingContext.MarkCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}"
                                             CommandParameter="{Binding .}"
                                             SemanticProperties.Description="Отметить привычку выполненной сегодня" />
 
-                                    <!-- Удаление кнопкой -->
                                     <Button Grid.Column="2" Grid.Row="0" Text="🗑"
                                             BackgroundColor="Transparent"
                                             TextColor="{AppThemeBinding Light={StaticResource DangerLight}, Dark={StaticResource DangerDark}}"
@@ -128,7 +126,6 @@
             </CollectionView>
         </RefreshView>
 
-        <!-- Индикатор первой загрузки -->
         <ActivityIndicator Grid.Row="2" IsRunning="{Binding IsLoading}" IsVisible="{Binding IsLoading}"
                            HorizontalOptions="Center" VerticalOptions="Center" />
     </Grid>

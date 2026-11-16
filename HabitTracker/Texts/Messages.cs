@@ -79,4 +79,8 @@ public static class Messages
     public const string BestStreakLabel = "Лучшая серия";
     public const string CreatedAtLabel = "Дата создания";
     public const string ProgressLabel = "Прогресс";
+    public const string NoDescription = "Описание не указано";
+    public static string CreatedAtText(DateTime date) => date.ToString("d MMMM yyyy", Russian);
+    public static string ProgressDetails(int percent, string progressText) =>
+        $"{PercentText(percent)} ({progressText})";
 }

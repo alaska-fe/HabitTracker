@@ -41,6 +41,7 @@ public sealed class HabitsViewModel : BaseViewModel
 
         LoadCommand = new AsyncRelayCommand(LoadAsync);
         AddCommand = new AsyncRelayCommand(() => _navigation.GoToAddHabitAsync());
+        OpenDetailsCommand = new AsyncRelayCommand<HabitCardModel>(OpenDetailsAsync);
 
         MarkCommand = new AsyncRelayCommand<HabitCardModel>(
             MarkCardAsync, CanMarkCard, AsyncRelayCommandOptions.AllowConcurrentExecutions);
@@ -49,12 +50,17 @@ public sealed class HabitsViewModel : BaseViewModel
 
         WeakReferenceMessenger.Default.Register<HabitAddedMessage>(this, (_, message) =>
             ShowStatus(Messages.HabitAdded(message.Name)));
+        WeakReferenceMessenger.Default.Register<HabitDeletedMessage>(this, (_, message) =>
+            ShowStatus(Messages.HabitDeleted(message.Name)));
+        WeakReferenceMessenger.Default.Register<HabitNotFoundMessage>(this, (_, _) =>
+            ShowStatus(Messages.NotFound));
     }
 
     public ObservableCollection<HabitCardModel> Habits { get; } = new();
 
     public IAsyncRelayCommand LoadCommand { get; }
     public IAsyncRelayCommand AddCommand { get; }
+    public IAsyncRelayCommand<HabitCardModel> OpenDetailsCommand { get; }
     public IAsyncRelayCommand<HabitCardModel> MarkCommand { get; }
     public IAsyncRelayCommand<HabitCardModel> DeleteCommand { get; }
 
@@ -77,6 +83,9 @@ public sealed class HabitsViewModel : BaseViewModel
 
     private static bool CanMarkCard(HabitCardModel? card) => card is { IsBusy: false, IsDoneToday: false };
     private static bool CanDeleteCard(HabitCardModel? card) => card is { IsBusy: false };
+
+    private Task OpenDetailsAsync(HabitCardModel? card) =>
+        card is null ? Task.CompletedTask : _navigation.GoToHabitDetailsAsync(card.Id);
 
     private Task LoadAsync() =>
         RunSafeAsync(LoadCoreAsync, busy => IsLoading = busy, OnLoadErrorAsync);
