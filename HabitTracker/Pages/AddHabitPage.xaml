@@ -1,13 +1,103 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:HabitTracker.ViewModels"
              xmlns:texts="clr-namespace:HabitTracker.Texts"
              x:Class="HabitTracker.Pages.AddHabitPage"
+             x:DataType="vm:AddHabitViewModel"
              Title="{x:Static texts:Messages.AddHabitTitle}">
-    <Grid Padding="{StaticResource PagePadding}">
-        <Label Text="Форма «Новая привычка» появится на шаге 8"
-               Style="{StaticResource SubHeadline}"
-               HorizontalOptions="Center"
-               VerticalOptions="Center" />
-    </Grid>
+
+    <ScrollView Padding="{StaticResource PagePadding}">
+        <VerticalStackLayout Spacing="{StaticResource SpaceS}">
+
+            <Label Text="{x:Static texts:Messages.NameLabel}" Style="{StaticResource TitleLabelStyle}" />
+            <Border Style="{StaticResource CardBorderStyle}" Padding="0">
+                <Entry x:Name="NameEntry"
+                       Text="{Binding Name, Mode=TwoWay}"
+                       MaxLength="50"
+                       ReturnType="Next"
+                       Unfocused="OnNameUnfocused"
+                       SemanticProperties.Description="Название привычки" />
+            </Border>
+            <Label Text="{Binding NameCounter}" Style="{StaticResource SecondaryLabelStyle}" />
+            <Label Text="{Binding NameError}" Style="{StaticResource ErrorLabelStyle}"
+                   IsVisible="{Binding HasNameError}" />
+
+            <Label Text="{x:Static texts:Messages.DescriptionLabel}" Style="{StaticResource TitleLabelStyle}"
+                   Margin="{StaticResource CardSpacing}" />
+            <Border Style="{StaticResource CardBorderStyle}" Padding="0">
+                <Editor Text="{Binding Description, Mode=TwoWay}"
+                        MaxLength="200"
+                        AutoSize="TextChanges"
+                        SemanticProperties.Description="Описание привычки" />
+            </Border>
+            <Label Text="{Binding DescriptionCounter}" Style="{StaticResource SecondaryLabelStyle}" />
+            <Label Text="{Binding DescriptionError}" Style="{StaticResource ErrorLabelStyle}"
+                   IsVisible="{Binding HasDescriptionError}" />
+
+            <Label Text="{x:Static texts:Messages.IconLabel}" Style="{StaticResource TitleLabelStyle}" />
+            <Picker ItemsSource="{Binding IconOptions}"
+                    SelectedItem="{Binding SelectedIcon, Mode=TwoWay}"
+                    ItemDisplayBinding="{Binding Title}"
+                    SemanticProperties.Description="Выбор иконки" />
+
+            <Label Text="{x:Static texts:Messages.ColorLabel}" Style="{StaticResource TitleLabelStyle}" />
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="{StaticResource SpaceM}">
+                <Picker Grid.Column="0"
+                        ItemsSource="{Binding ColorOptions}"
+                        SelectedItem="{Binding SelectedColor, Mode=TwoWay}"
+                        ItemDisplayBinding="{Binding Title}"
+                        SemanticProperties.Description="Выбор цвета" />
+                <Border Grid.Column="1" VerticalOptions="Center"
+                        WidthRequest="{StaticResource ColorSampleSize}"
+                        HeightRequest="{StaticResource ColorSampleSize}"
+                        StrokeThickness="0" Padding="0"
+                        BackgroundColor="{Binding PreviewColorHex, Converter={StaticResource HexToColor}}">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="{StaticResource ColorSampleCorner}" />
+                    </Border.StrokeShape>
+                </Border>
+            </Grid>
+
+            <Label Text="{x:Static texts:Messages.GoalLabel}" Style="{StaticResource TitleLabelStyle}" />
+            <Picker ItemsSource="{Binding GoalOptions}"
+                    SelectedItem="{Binding SelectedGoal, Mode=TwoWay}"
+                    ItemDisplayBinding="{Binding Title}"
+                    SemanticProperties.Description="Выбор цели в днях" />
+
+            <Label Text="{x:Static texts:Messages.PreviewLabel}" Style="{StaticResource TitleLabelStyle}" />
+            <Border Style="{StaticResource CardBorderStyle}">
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="{StaticResource SpaceM}">
+                    <Border Grid.Column="0" VerticalOptions="Center"
+                            WidthRequest="{StaticResource IconCircleSize}"
+                            HeightRequest="{StaticResource IconCircleSize}"
+                            StrokeThickness="0" Padding="0"
+                            BackgroundColor="{Binding PreviewColorHex, Converter={StaticResource HexToColor}}">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="{StaticResource IconCorner}" />
+                        </Border.StrokeShape>
+                        <Label Text="{Binding PreviewGlyph}" FontSize="{StaticResource IconGlyphSize}"
+                               HorizontalOptions="Center" VerticalOptions="Center" />
+                    </Border>
+                    <VerticalStackLayout Grid.Column="1" Spacing="{StaticResource SpaceXS}">
+                        <Label Text="{Binding PreviewName}" Style="{StaticResource TitleLabelStyle}"
+                               LineBreakMode="TailTruncation" />
+                        <Label Text="{Binding PreviewStreakText}" Style="{StaticResource SecondaryLabelStyle}" />
+                    </VerticalStackLayout>
+                </Grid>
+            </Border>
+
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="{StaticResource SpaceM}"
+                  Margin="{StaticResource CardSpacing}">
+                <Button Grid.Column="0" Text="{x:Static texts:Messages.Save}"
+                        Command="{Binding SaveCommand}"
+                        SemanticProperties.Description="Сохранить привычку" />
+                <Button Grid.Column="1" Text="{x:Static texts:Messages.Cancel}"
+                        Style="{StaticResource SecondaryButtonStyle}"
+                        Command="{Binding CancelCommand}"
+                        SemanticProperties.Description="Отменить ввод" />
+            </Grid>
+
+        </VerticalStackLayout>
+    </ScrollView>
 </ContentPage>

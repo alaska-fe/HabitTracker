@@ -5,47 +5,59 @@ using HabitTracker.Core.Texts;
 
 namespace HabitTracker.Core.Validation;
 
-/// <summary>
-/// Валидация и нормализация запроса на создание (ТЗ 6.4, 9.3) — чистая статическая логика.
-/// Собирает все ошибки сразу и бросает HabitException(ValidationFailed) со словарём «поле → сообщение».
-/// </summary>
 public static class HabitValidator
 {
     public const int NameMinLength = 3;
     public const int NameMaxLength = 50;
     public const int DescriptionMaxLength = 200;
 
-    /// <summary>Обрезает пробелы по краям и схлопывает повторные пробелы внутри (ТЗ 6.4).</summary>
     public static string NormalizeName(string name)
     {
-        // Split(null) разбивает по любым пробельным символам, RemoveEmptyEntries убирает повторы.
         var words = name.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
         return string.Join(' ', words);
     }
 
-    /// <summary>Проверяет все поля; возвращает нормализованный запрос или бросает ValidationFailed.</summary>
+    public static string? GetNameError(string name)
+    {
+        var normalized = NormalizeName(name);
+
+        if (normalized.Length == 0)
+        {
+            return ValidationTexts.NameRequired;
+        }
+
+        if (normalized.Length < NameMinLength)
+        {
+            return ValidationTexts.NameTooShort;
+        }
+
+        if (normalized.Length > NameMaxLength)
+        {
+            return ValidationTexts.NameTooLong;
+        }
+
+        return null;
+    }
+
+    public static string? GetDescriptionError(string description) =>
+        description.Trim().Length > DescriptionMaxLength ? ValidationTexts.DescriptionTooLong : null;
+
     public static NewHabit Validate(NewHabit request)
     {
         var name = NormalizeName(request.Name);
         var description = request.Description.Trim();
         var errors = new Dictionary<string, string>();
 
-        if (name.Length == 0)
+        var nameError = GetNameError(request.Name);
+        if (nameError is not null)
         {
-            errors[nameof(NewHabit.Name)] = ValidationTexts.NameRequired;
-        }
-        else if (name.Length < NameMinLength)
-        {
-            errors[nameof(NewHabit.Name)] = ValidationTexts.NameTooShort;
-        }
-        else if (name.Length > NameMaxLength)
-        {
-            errors[nameof(NewHabit.Name)] = ValidationTexts.NameTooLong;
+            errors[nameof(NewHabit.Name)] = nameError;
         }
 
-        if (description.Length > DescriptionMaxLength)
+        var descriptionError = GetDescriptionError(request.Description);
+        if (descriptionError is not null)
         {
-            errors[nameof(NewHabit.Description)] = ValidationTexts.DescriptionTooLong;
+            errors[nameof(NewHabit.Description)] = descriptionError;
         }
 
         if (!HabitIcons.All.Any(option => option.Key == request.IconKey))
