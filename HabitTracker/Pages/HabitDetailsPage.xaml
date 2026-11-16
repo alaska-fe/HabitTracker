@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:HabitTracker.ViewModels"
+             xmlns:texts="clr-namespace:HabitTracker.Texts"
+             x:Class="HabitTracker.Pages.HabitDetailsPage"
+             x:DataType="vm:HabitDetailsViewModel"
+             Title="{x:Static texts:Messages.DetailsTitle}">
+
+    <Grid Padding="{StaticResource PagePadding}" RowDefinitions="Auto,*" RowSpacing="{StaticResource SpaceM}">
+
+        <Border Grid.Row="0" Style="{StaticResource BannerBorderStyle}" IsVisible="{Binding HasError}">
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="{StaticResource SpaceM}">
+                <Label Grid.Column="0" Text="{Binding ErrorMessage}" VerticalOptions="Center" />
+                <Button Grid.Column="1" Text="{x:Static texts:Messages.Retry}"
+                        Command="{Binding LoadCommand}"
+                        SemanticProperties.Description="Повторить загрузку привычки" />
+            </Grid>
+        </Border>
+
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Spacing="{StaticResource SpaceS}" IsVisible="{Binding HasCard}">
+
+                <Border Style="{StaticResource CardBorderStyle}" Margin="{StaticResource CardSpacing}">
+                    <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto"
+                          ColumnSpacing="{StaticResource SpaceM}" RowSpacing="{StaticResource SpaceS}">
+
+                        <Border Grid.Column="0" Grid.RowSpan="3" VerticalOptions="Center"
+                                WidthRequest="{StaticResource IconCircleSize}"
+                                HeightRequest="{StaticResource IconCircleSize}"
+                                StrokeThickness="0" Padding="0"
+                                BackgroundColor="{Binding Card.ColorHex, Converter={StaticResource HexToColor}}">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="{StaticResource IconCorner}" />
+                            </Border.StrokeShape>
+                            <Label Text="{Binding Card.Glyph}" FontSize="{StaticResource IconGlyphSize}"
+                                   HorizontalOptions="Center" VerticalOptions="Center" />
+                        </Border>
+
+                        <Label Grid.Column="1" Grid.Row="0" Text="{Binding Card.Name}"
+                               Style="{StaticResource TitleLabelStyle}" LineBreakMode="TailTruncation" />
+                        <Label Grid.Column="1" Grid.Row="1" Text="{Binding Card.StreakText}"
+                               Style="{StaticResource SecondaryLabelStyle}" />
+                        <ProgressBar Grid.Column="1" Grid.Row="2"
+                                     Progress="{Binding Card.Progress}"
+                                     ProgressColor="{Binding Card.ColorHex, Converter={StaticResource HexToColor}}"
+                                     SemanticProperties.Description="Прогресс до цели" />
+                    </Grid>
+                </Border>
+
+                <Label Text="{x:Static texts:Messages.DescriptionLabel}" Style="{StaticResource TitleLabelStyle}" />
+                <Label Text="{Binding DescriptionText}" />
+
+                <Grid ColumnDefinitions="*,Auto" Margin="{StaticResource CardSpacing}">
+                    <Label Grid.Column="0" Text="{x:Static texts:Messages.CurrentStreakLabel}"
+                           Style="{StaticResource SecondaryLabelStyle}" />
+                    <Label Grid.Column="1" Text="{Binding CurrentStreakText}" />
+                </Grid>
+
+                <Grid ColumnDefinitions="*,Auto">
+                    <Label Grid.Column="0" Text="{x:Static texts:Messages.BestStreakLabel}"
+                           Style="{StaticResource SecondaryLabelStyle}" />
+                    <Label Grid.Column="1" Text="{Binding BestStreakText}" />
+                </Grid>
+
+                <Grid ColumnDefinitions="*,Auto">
+                    <Label Grid.Column="0" Text="{x:Static texts:Messages.CreatedAtLabel}"
+                           Style="{StaticResource SecondaryLabelStyle}" />
+                    <Label Grid.Column="1" Text="{Binding CreatedAtText}" />
+                </Grid>
+
+                <Grid ColumnDefinitions="*,Auto">
+                    <Label Grid.Column="0" Text="{x:Static texts:Messages.ProgressLabel}"
+                           Style="{StaticResource SecondaryLabelStyle}" />
+                    <Label Grid.Column="1" Text="{Binding ProgressText}" />
+                </Grid>
+
+                <Button Text="{Binding Card.ButtonText}"
+                        Command="{Binding MarkCommand}"
+                        SemanticProperties.Description="Отметить привычку выполненной сегодня" />
+                <Button Text="{x:Static texts:Messages.DeleteAccept}"
+                        Style="{StaticResource DangerButtonStyle}"
+                        Command="{Binding DeleteCommand}"
+                        SemanticProperties.Description="Удалить привычку" />
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <ActivityIndicator Grid.Row="1" IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}"
+                           HorizontalOptions="Center" VerticalOptions="Center" />
+    </Grid>
+</ContentPage>
