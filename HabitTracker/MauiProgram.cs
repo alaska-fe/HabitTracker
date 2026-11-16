@@ -1,4 +1,4 @@
-﻿using HabitTracker.Core.Abstractions;
+using HabitTracker.Core.Abstractions;
 using HabitTracker.Core.Services;
 using HabitTracker.Pages;
 using HabitTracker.Services;
