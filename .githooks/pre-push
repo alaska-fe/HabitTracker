@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+echo "pre-push: тесты Core с порогом покрытия 80%"
+
+dotnet test "$ROOT_DIR/HabitTracker.Tests/HabitTracker.Tests.csproj" \
+  --configuration Release \
+  /p:CollectCoverage=true \
+  /p:CoverletOutputFormat=cobertura \
+  /p:CoverletOutput="$ROOT_DIR/TestResults/pre-push/" \
+  /p:Include="[HabitTracker.Core]*" \
+  /p:ExcludeByAttribute=ExcludeFromCodeCoverage \
+  /p:Threshold=80 \
+  /p:ThresholdType=line \
+  /p:ThresholdStat=totals
