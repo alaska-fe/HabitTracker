@@ -1,13 +1,135 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:HabitTracker.ViewModels"
              xmlns:texts="clr-namespace:HabitTracker.Texts"
              x:Class="HabitTracker.Pages.HabitsPage"
+             x:DataType="vm:HabitsViewModel"
              Title="{x:Static texts:Messages.HabitsTitle}">
-    <Grid Padding="{StaticResource PagePadding}">
-        <Label Text="Экран «Привычки» появится на шаге 7"
-               Style="{StaticResource SubHeadline}"
-               HorizontalOptions="Center"
-               VerticalOptions="Center" />
+
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="+"
+                     Command="{Binding AddCommand}"
+                     SemanticProperties.Description="Добавить привычку" />
+    </ContentPage.ToolbarItems>
+
+    <Grid Padding="{StaticResource PagePadding}" RowDefinitions="Auto,Auto,*" RowSpacing="{StaticResource SpaceM}">
+
+        <!-- Баннер ошибки N09 -->
+        <Border Grid.Row="0" Style="{StaticResource BannerBorderStyle}" IsVisible="{Binding HasError}">
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="{StaticResource SpaceM}">
+                <Label Grid.Column="0" Text="{Binding ErrorMessage}" VerticalOptions="Center" />
+                <Button Grid.Column="1" Text="{x:Static texts:Messages.Retry}"
+                        Command="{Binding LoadCommand}"
+                        SemanticProperties.Description="Повторить загрузку" />
+            </Grid>
+        </Border>
+
+        <!-- Строка-сводка -->
+        <Label Grid.Row="1" Text="{Binding SummaryText}"
+               Style="{StaticResource SecondaryLabelStyle}"
+               IsVisible="{Binding HasItems}" />
+
+        <!-- Список -->
+        <RefreshView Grid.Row="2"
+                     IsRefreshing="{Binding IsLoading, Mode=TwoWay}"
+                     Command="{Binding LoadCommand}">
+            <CollectionView ItemsSource="{Binding Habits}" SelectionMode="None">
+
+                <CollectionView.EmptyView>
+                    <Grid IsVisible="{Binding ShowEmptyState}" RowDefinitions="Auto,Auto,Auto"
+                          RowSpacing="{StaticResource SpaceM}" VerticalOptions="Center">
+                        <Label Grid.Row="0" Text="🌱" FontSize="{StaticResource FontSizeDisplay}"
+                               HorizontalOptions="Center" />
+                        <Label Grid.Row="1" Text="{x:Static texts:Messages.EmptyHabits}"
+                               Style="{StaticResource SubHeadline}" HorizontalTextAlignment="Center" />
+                        <Button Grid.Row="2" Text="{x:Static texts:Messages.AddFirstHabit}"
+                                Command="{Binding AddCommand}" HorizontalOptions="Center"
+                                SemanticProperties.Description="Добавить первую привычку" />
+                    </Grid>
+                </CollectionView.EmptyView>
+
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="vm:HabitCardModel">
+                        <SwipeView Margin="{StaticResource CardSpacing}">
+                            <SwipeView.RightItems>
+                                <SwipeItems Mode="Reveal">
+                                    <SwipeItem Text="{x:Static texts:Messages.DeleteAccept}"
+                                               BackgroundColor="{AppThemeBinding Light={StaticResource DangerLight}, Dark={StaticResource DangerDark}}"
+                                               Command="{Binding BindingContext.DeleteCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}"
+                                               CommandParameter="{Binding .}" />
+                                </SwipeItems>
+                            </SwipeView.RightItems>
+
+                            <Border Style="{StaticResource CardBorderStyle}">
+                                <Grid ColumnDefinitions="Auto,*,Auto" RowDefinitions="Auto,Auto,Auto,Auto"
+                                      ColumnSpacing="{StaticResource SpaceM}" RowSpacing="{StaticResource SpaceS}">
+
+                                    <!-- Иконка-круг -->
+                                    <Border Grid.Column="0" Grid.RowSpan="4" VerticalOptions="Center"
+                                            WidthRequest="{StaticResource IconCircleSize}"
+                                            HeightRequest="{StaticResource IconCircleSize}"
+                                            StrokeThickness="0" Padding="0"
+                                            BackgroundColor="{Binding ColorHex, Converter={StaticResource HexToColor}}"
+                                            SemanticProperties.Description="Иконка привычки">
+                                        <Border.StrokeShape>
+                                            <RoundRectangle CornerRadius="{StaticResource IconCorner}" />
+                                        </Border.StrokeShape>
+                                        <Label Text="{Binding Glyph}" FontSize="{StaticResource IconGlyphSize}"
+                                               HorizontalOptions="Center" VerticalOptions="Center" />
+                                    </Border>
+
+                                    <!-- Название -->
+                                    <Label Grid.Column="1" Grid.Row="0" Text="{Binding Name}"
+                                           Style="{StaticResource TitleLabelStyle}" LineBreakMode="TailTruncation" />
+
+                                    <!-- Серия / N05 -->
+                                    <Label Grid.Column="1" Grid.Row="1" Text="{Binding StreakText}"
+                                           Style="{StaticResource SecondaryLabelStyle}">
+                                        <Label.Triggers>
+                                            <DataTrigger TargetType="Label" Binding="{Binding IsStreakBroken}" Value="True">
+                                                <Setter Property="TextColor"
+                                                        Value="{AppThemeBinding Light={StaticResource WarningLight}, Dark={StaticResource WarningDark}}" />
+                                            </DataTrigger>
+                                        </Label.Triggers>
+                                    </Label>
+
+                                    <!-- Прогресс -->
+                                    <Grid Grid.Column="1" Grid.Row="2" ColumnDefinitions="*,Auto"
+                                          ColumnSpacing="{StaticResource SpaceS}">
+                                        <ProgressBar Grid.Column="0" Progress="{Binding Progress}"
+                                                     ProgressColor="{Binding ColorHex, Converter={StaticResource HexToColor}}"
+                                                     VerticalOptions="Center"
+                                                     SemanticProperties.Description="Прогресс до цели" />
+                                        <Label Grid.Column="1" Text="{Binding ProgressText}"
+                                               Style="{StaticResource SecondaryLabelStyle}" VerticalOptions="Center" />
+                                    </Grid>
+
+                                    <!-- Отметка -->
+                                    <Button Grid.Column="1" Grid.Row="3" Text="{Binding ButtonText}"
+                                            HorizontalOptions="Start"
+                                            Command="{Binding BindingContext.MarkCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}"
+                                            CommandParameter="{Binding .}"
+                                            SemanticProperties.Description="Отметить привычку выполненной сегодня" />
+
+                                    <!-- Удаление кнопкой -->
+                                    <Button Grid.Column="2" Grid.Row="0" Text="🗑"
+                                            BackgroundColor="Transparent"
+                                            TextColor="{AppThemeBinding Light={StaticResource DangerLight}, Dark={StaticResource DangerDark}}"
+                                            MinimumWidthRequest="{StaticResource TouchTarget}"
+                                            Command="{Binding BindingContext.DeleteCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}"
+                                            CommandParameter="{Binding .}"
+                                            SemanticProperties.Description="Удалить привычку" />
+                                </Grid>
+                            </Border>
+                        </SwipeView>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </RefreshView>
+
+        <!-- Индикатор первой загрузки -->
+        <ActivityIndicator Grid.Row="2" IsRunning="{Binding IsLoading}" IsVisible="{Binding IsLoading}"
+                           HorizontalOptions="Center" VerticalOptions="Center" />
     </Grid>
 </ContentPage>

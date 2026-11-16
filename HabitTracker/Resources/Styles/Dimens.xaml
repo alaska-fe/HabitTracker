@@ -19,6 +19,11 @@
     <!-- Доступность: интерактивные элементы не меньше 44×44 (ТЗ 7.2) -->
     <x:Double x:Key="TouchTarget">44</x:Double>
 
+    <!-- Иконка привычки -->
+    <x:Double x:Key="IconCircleSize">48</x:Double>
+    <x:Double x:Key="IconGlyphSize">22</x:Double>
+    <CornerRadius x:Key="IconCorner">24</CornerRadius>
+
     <!-- Контейнеры -->
     <Thickness x:Key="PagePadding">16</Thickness>
     <Thickness x:Key="CardPadding">12</Thickness>
@@ -26,5 +31,6 @@
     <Thickness x:Key="TilePadding">12</Thickness>
     <Thickness x:Key="ButtonPadding">16,10</Thickness>
     <Thickness x:Key="FieldPadding">12,8</Thickness>
+    <Thickness x:Key="CardSpacing">0,0,0,12</Thickness>
 
 </ResourceDictionary>
