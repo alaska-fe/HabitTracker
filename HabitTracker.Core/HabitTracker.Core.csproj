@@ -4,12 +4,16 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <NoWarn>$(NoWarn);NU1903;NETSDK1206</NoWarn>
+    <!-- ТЗ 11.4: в Core нет предупреждений компилятора -->
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="sqlite-net-pcl" Version="1.9.172" />
+    <!-- Единственная сторонняя зависимость, разрешённая ТЗ 4.1:
+         только ради атрибутов [Table], [PrimaryKey] модели Habit.
+         1.11.285: актуальный нативный SQLite (SourceGear.sqlite3),
+         без предупреждений аудита NU1903 и NETSDK1206 -->
+    <PackageReference Include="sqlite-net-pcl" Version="1.11.285" />
   </ItemGroup>
 
 </Project>
