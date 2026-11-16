@@ -1,7 +1,9 @@
 using HabitTracker.Core.Abstractions;
+using HabitTracker.Core.Models;
 using HabitTracker.Core.Services;
 using HabitTracker.Pages;
 using HabitTracker.Services;
+using HabitTracker.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -27,7 +29,10 @@ public static class MauiProgram
         builder.Services.AddSingleton<IDialogService, DialogService>();
         builder.Services.AddSingleton<INavigationService, NavigationService>();
 
-        // Страницы (ТЗ 4.4): Transient. ViewModel добавим на шагах 7–9.
+        // ViewModel (ТЗ 4.4): Transient
+        builder.Services.AddTransient<HabitsViewModel>();
+
+        // Страницы (ТЗ 4.4): Transient
         builder.Services.AddTransient<HabitsPage>();
         builder.Services.AddTransient<StatsPage>();
         builder.Services.AddTransient<AddHabitPage>();
@@ -39,25 +44,46 @@ public static class MauiProgram
         var app = builder.Build();
 
 #if DEBUG
-        // ВРЕМЕННЫЙ зонд (шаг 5): проверяем DI и SQLite. Удалим на шаге 7.
-        _ = ProbeDatabaseAsync(app.Services);
+        // ВРЕМЕННЫЙ посев тестовых данных: проверить главный экран до формы добавления.
+        // Будет удалён на шаге 8.
+        _ = SeedAsync(app.Services);
 #endif
 
         return app;
     }
 
 #if DEBUG
-    private static async Task ProbeDatabaseAsync(IServiceProvider services)
+    private static async Task SeedAsync(IServiceProvider services)
     {
         try
         {
-            var service = services.GetRequiredService<IHabitService>();
-            var habits = await service.GetAllAsync();
-            Console.WriteLine($"[HabitTrackerProbe] OK: habits.db3 создан, привычек: {habits.Count}");
+            var repository = services.GetRequiredService<IHabitRepository>();
+            if ((await repository.GetAllAsync()).Count > 0)
+            {
+                return;
+            }
+
+            var today = DateTime.Today;
+            await repository.InsertAsync(new Habit
+            {
+                Name = "Пить воду", IconKey = "water", ColorKey = "blue", GoalDays = 21,
+                CurrentStreak = 7, BestStreak = 7, LastCompletedDate = today, CreatedAt = today
+            });
+            await repository.InsertAsync(new Habit
+            {
+                Name = "Читать", IconKey = "book", ColorKey = "green", GoalDays = 21,
+                CurrentStreak = 5, BestStreak = 9, LastCompletedDate = today.AddDays(-2), CreatedAt = today
+            });
+            await repository.InsertAsync(new Habit
+            {
+                Name = "Медитация", IconKey = "yoga", ColorKey = "purple", GoalDays = 21,
+                CurrentStreak = 3, BestStreak = 3, LastCompletedDate = today.AddDays(-1), CreatedAt = today
+            });
+            Console.WriteLine("[HabitTrackerSeed] Добавлены 3 тестовые привычки");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[HabitTrackerProbe] FAIL: {ex}");
+            Console.WriteLine($"[HabitTrackerSeed] FAIL: {ex}");
         }
     }
 #endif
