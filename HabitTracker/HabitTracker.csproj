@@ -15,6 +15,7 @@
     <ApplicationVersion>1</ApplicationVersion>
 
     <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">24.0</SupportedOSPlatformVersion>
+    <SkipTests Condition="'$(SkipTests)' == ''">false</SkipTests>
   </PropertyGroup>
 
   <ItemGroup>
@@ -34,5 +35,11 @@
   <ItemGroup>
     <ProjectReference Include="..\HabitTracker.Core\HabitTracker.Core.csproj" />
   </ItemGroup>
+
+  <Target Name="RunCoreTests" BeforeTargets="Build" Condition="'$(SkipTests)' != 'true' and '$(DesignTimeBuild)' != 'true'">
+    <Message Importance="high" Text="RunCoreTests: запуск тестов и порога покрытия перед сборкой приложения" />
+    <Exec WorkingDirectory="$(MSBuildThisFileDirectory).."
+          Command="dotnet test HabitTracker.Tests/HabitTracker.Tests.csproj --configuration $(Configuration) /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=&quot;$(MSBuildThisFileDirectory)../TestResults/coverage/&quot; /p:Include=&quot;[HabitTracker.Core]*&quot; /p:ExcludeByAttribute=ExcludeFromCodeCoverage /p:Threshold=80 /p:ThresholdType=line /p:ThresholdStat=total" />
+  </Target>
 
 </Project>
