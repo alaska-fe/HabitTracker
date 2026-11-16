@@ -29,6 +29,7 @@ public static class MauiProgram
 
         builder.Services.AddTransient<HabitsViewModel>();
         builder.Services.AddTransient<AddHabitViewModel>();
+        builder.Services.AddTransient<StatsViewModel>();
 
         builder.Services.AddTransient<HabitsPage>();
         builder.Services.AddTransient<StatsPage>();
