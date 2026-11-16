@@ -1,19 +1,17 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using HabitTracker.Core.Abstractions;
 using HabitTracker.Core.Errors;
 using HabitTracker.Core.Models;
 using HabitTracker.Core.Rules;
+using HabitTracker.Messaging;
 using HabitTracker.Services;
 using HabitTracker.Texts;
 
 namespace HabitTracker.ViewModels;
 
-/// <summary>
-/// ViewModel главного экрана (ТЗ 7.3). Состояние списка, команды, вызовы сервиса,
-/// преобразование ошибок в уведомления. Не знает о SQLite и Shell.
-/// </summary>
 public sealed class HabitsViewModel : BaseViewModel
 {
     private readonly IHabitService _service;
@@ -44,11 +42,13 @@ public sealed class HabitsViewModel : BaseViewModel
         LoadCommand = new AsyncRelayCommand(LoadAsync);
         AddCommand = new AsyncRelayCommand(() => _navigation.GoToAddHabitAsync());
 
-        // AllowConcurrentExecutions: одна карточка в процессе записи не блокирует остальные.
         MarkCommand = new AsyncRelayCommand<HabitCardModel>(
             MarkCardAsync, CanMarkCard, AsyncRelayCommandOptions.AllowConcurrentExecutions);
         DeleteCommand = new AsyncRelayCommand<HabitCardModel>(
             DeleteCardAsync, CanDeleteCard, AsyncRelayCommandOptions.AllowConcurrentExecutions);
+
+        WeakReferenceMessenger.Default.Register<HabitAddedMessage>(this, (_, message) =>
+            ShowStatus(Messages.HabitAdded(message.Name)));
     }
 
     public ObservableCollection<HabitCardModel> Habits { get; } = new();
@@ -105,7 +105,6 @@ public sealed class HabitsViewModel : BaseViewModel
 
     private Task OnLoadErrorAsync(HabitException ex)
     {
-        // N09: баннер с «Повторить». Уже показанный список не очищаем (ТЗ 10.2).
         ShowError(Messages.LoadFailed);
         return Task.CompletedTask;
     }
@@ -114,7 +113,7 @@ public sealed class HabitsViewModel : BaseViewModel
     {
         if (card is null || card.IsBusy || card.IsDoneToday)
         {
-            return; // защита от двойного нажатия (A7)
+            return;
         }
 
         await RunSafeAsync(() => MarkCoreAsync(card), busy => card.IsBusy = busy, OnMarkErrorAsync);
@@ -124,7 +123,7 @@ public sealed class HabitsViewModel : BaseViewModel
     {
         var result = await _service.MarkCompletedTodayAsync(card.Id);
 
-        card.Update(result.Habit, _clock.Today); // обновляем только эту карточку
+        card.Update(result.Habit, _clock.Today);
         Resort();
         UpdateSummary();
         ClearError();
@@ -132,16 +131,15 @@ public sealed class HabitsViewModel : BaseViewModel
         switch (result.Outcome)
         {
             case MarkOutcome.AlreadyDoneToday:
-                ShowStatus(Messages.AlreadyDoneToday); // N03
+                ShowStatus(Messages.AlreadyDoneToday);
                 break;
             case MarkOutcome.GoalReached:
-                ShowStatus(Messages.HabitMarked(result.Habit.CurrentStreak)); // N02
-                // N04 — после обновления карточки, не блокирует другие карточки.
+                ShowStatus(Messages.HabitMarked(result.Habit.CurrentStreak));
                 await _dialogs.AlertAsync(Messages.GoalReachedTitle,
                     Messages.GoalReached(result.Habit.Name, result.Habit.GoalDays));
                 break;
             default:
-                ShowStatus(Messages.HabitMarked(result.Habit.CurrentStreak)); // N02
+                ShowStatus(Messages.HabitMarked(result.Habit.CurrentStreak));
                 break;
         }
     }
@@ -151,14 +149,14 @@ public sealed class HabitsViewModel : BaseViewModel
         switch (ex.Kind)
         {
             case HabitErrorKind.NotFound:
-                ShowStatus(Messages.NotFound); // N16
+                ShowStatus(Messages.NotFound);
                 await LoadCoreAsync();
                 break;
             case HabitErrorKind.ClockMovedBack:
-                await _dialogs.AlertAsync(Messages.ErrorTitle, Messages.ClockMovedBack); // N11
+                await _dialogs.AlertAsync(Messages.ErrorTitle, Messages.ClockMovedBack);
                 break;
             default:
-                await _dialogs.AlertAsync(Messages.ErrorTitle, Messages.SaveFailed); // N10
+                await _dialogs.AlertAsync(Messages.ErrorTitle, Messages.SaveFailed);
                 break;
         }
     }
@@ -172,7 +170,7 @@ public sealed class HabitsViewModel : BaseViewModel
 
         var confirmed = await _dialogs.ConfirmAsync(
             Messages.ConfirmDeleteTitle, Messages.ConfirmDelete(card.Name),
-            Messages.DeleteAccept, Messages.DeleteCancel); // N06
+            Messages.DeleteAccept, Messages.DeleteCancel);
         if (!confirmed)
         {
             return;
@@ -188,19 +186,19 @@ public sealed class HabitsViewModel : BaseViewModel
         Habits.Remove(card);
         UpdateSummary();
         ClearError();
-        ShowStatus(Messages.HabitDeleted(card.Name)); // N07
+        ShowStatus(Messages.HabitDeleted(card.Name));
     }
 
     private async Task OnDeleteErrorAsync(HabitException ex)
     {
         if (ex.Kind == HabitErrorKind.NotFound)
         {
-            ShowStatus(Messages.NotFound); // N16
+            ShowStatus(Messages.NotFound);
             await LoadCoreAsync();
         }
         else
         {
-            await _dialogs.AlertAsync(Messages.ErrorTitle, Messages.SaveFailed); // N10, карточка остаётся
+            await _dialogs.AlertAsync(Messages.ErrorTitle, Messages.SaveFailed);
         }
     }
 
