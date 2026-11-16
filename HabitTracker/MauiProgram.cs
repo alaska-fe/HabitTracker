@@ -1,10 +1,9 @@
-﻿using HabitTracker.Core.Abstractions;
+using HabitTracker.Core.Abstractions;
 using HabitTracker.Core.Services;
+using HabitTracker.Pages;
 using HabitTracker.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Maui.Devices;
-using Microsoft.Maui.Handlers;
 
 namespace HabitTracker;
 
@@ -28,9 +27,10 @@ public static class MauiProgram
         builder.Services.AddSingleton<IDialogService, DialogService>();
         builder.Services.AddSingleton<INavigationService, NavigationService>();
 
-        // ViewModel и страницы (Transient) регистрируем на шагах 7–10 по мере появления.
-
-        ConfigureFieldPaddingHandlers();
+        // Страницы (ТЗ 4.4): Transient. ViewModel добавим на шагах 7–9.
+        builder.Services.AddTransient<HabitsPage>();
+        builder.Services.AddTransient<StatsPage>();
+        builder.Services.AddTransient<AddHabitPage>();
 
 #if DEBUG
         builder.Logging.AddDebug();
@@ -39,54 +39,11 @@ public static class MauiProgram
         var app = builder.Build();
 
 #if DEBUG
-        // ВРЕМЕННЫЙ диагностический зонд: проверяем DI и нативный SQLite на устройстве
-        // до появления экранов. Будет удалён на шаге 7 (загрузку возьмёт HabitsViewModel).
+        // ВРЕМЕННЫЙ зонд (шаг 5): проверяем DI и SQLite. Удалим на шаге 7.
         _ = ProbeDatabaseAsync(app.Services);
 #endif
 
         return app;
-    }
-
-    // У Entry/Editor в .NET MAUI нет XAML-свойства Padding.
-    // Добавляем внутренний отступ через нативные обработчики (Android).
-    private static void ConfigureFieldPaddingHandlers()
-    {
-#if ANDROID
-        EntryHandler.Mapper.AppendToMapping("FieldPadding", (handler, _) =>
-            ApplyAndroidPadding(handler.PlatformView));
-
-        EditorHandler.Mapper.AppendToMapping("FieldPadding", (handler, _) =>
-            ApplyAndroidPadding(handler.PlatformView));
-#endif
-    }
-
-#if ANDROID
-    private static void ApplyAndroidPadding(Android.Widget.EditText? native)
-    {
-        if (native is null) return;
-
-        var p = GetFieldPaddingOrDefault();
-        var density = (float)DeviceDisplay.MainDisplayInfo.Density;
-
-        native.SetPadding(
-            (int)Math.Round(p.Left * density),
-            (int)Math.Round(p.Top * density),
-            (int)Math.Round(p.Right * density),
-            (int)Math.Round(p.Bottom * density));
-    }
-#endif
-
-    private static Thickness GetFieldPaddingOrDefault()
-    {
-        // Пытаемся прочитать значение из ресурсов (Dimens.xaml).
-        if (Application.Current?.Resources.TryGetValue("FieldPadding", out var value) == true
-            && value is Thickness t)
-        {
-            return t;
-        }
-
-        // Fallback на случай, если ресурс ещё не загружен (первый рендер).
-        return new Thickness(12, 8);
     }
 
 #if DEBUG

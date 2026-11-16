@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:texts="clr-namespace:HabitTracker.Texts"
+             x:Class="HabitTracker.Pages.HabitsPage"
+             Title="{x:Static texts:Messages.HabitsTitle}">
+    <Grid Padding="{StaticResource PagePadding}">
+        <Label Text="Экран «Привычки» появится на шаге 7"
+               Style="{StaticResource SubHeadline}"
+               HorizontalOptions="Center"
+               VerticalOptions="Center" />
+    </Grid>
+</ContentPage>
