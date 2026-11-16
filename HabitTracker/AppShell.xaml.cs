@@ -8,7 +8,7 @@ public partial class AppShell : Shell
     {
         InitializeComponent();
 
-        // Маршрут страницы добавления (ТЗ 8.3). Маршрут habit-details добавим на шаге 10.
         Routing.RegisterRoute("add-habit", typeof(AddHabitPage));
+        Routing.RegisterRoute("habit-details", typeof(HabitDetailsPage));
     }
 }
