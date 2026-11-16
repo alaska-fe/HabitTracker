@@ -14,26 +14,48 @@
 
 ## Требования
 
-- .NET SDK 10.0 (`dotnet --version`)
+- .NET SDK 10.0
 - Workload: `dotnet workload install maui`
 - JetBrains Rider 2025.3+
-- Целевая платформа задаётся в `HabitTracker/HabitTracker.csproj` (Android или Windows)
+- Android SDK / устройство или эмулятор
 
 ## Сборка
 
     dotnet build HabitTracker.Core/HabitTracker.Core.csproj
     dotnet build HabitTracker/HabitTracker.csproj
 
-Запуск: открыть `HabitTracker.sln` в Rider, выбрать устройство/платформу и нажать Run.
+При сборке приложения автоматически запускаются тесты Core с порогом покрытия.
+Чтобы пропустить тесты во время быстрой UI-итерации:
 
-## Тесты
+    dotnet build HabitTracker/HabitTracker.csproj -p:SkipTests=true
+
+Запуск: открыть `HabitTracker.sln` в Rider, выбрать Android-устройство и нажать Run.
+
+## Тесты и покрытие
 
     dotnet test HabitTracker.Tests/HabitTracker.Tests.csproj
 
-Тесты не требуют эмулятора, реальной БД и текущего времени: используются
-тестовые двойники `FakeClock` и `InMemoryHabitRepository`.
+С порогом покрытия строк Core не ниже 80%:
+
+    dotnet test HabitTracker.Tests/HabitTracker.Tests.csproj \
+      /p:CollectCoverage=true \
+      /p:CoverletOutputFormat=cobertura \
+      /p:Include="[HabitTracker.Core]*" \
+      /p:ExcludeByAttribute=ExcludeFromCodeCoverage \
+      /p:Threshold=80 /p:ThresholdType=line /p:ThresholdStat=total
+
+## Git-хук pre-push
+
+Хук запускает тесты с порогом покрытия перед отправкой:
+
+    git config core.hooksPath .githooks
+    chmod +x .githooks/pre-push
+
+## CI
+
+GitHub Actions (`.github/workflows/tests.yml`) собирает Core, прогоняет тесты
+с покрытием и сохраняет HTML-отчёт как артефакт `coverage-report`.
 
 ## Отчёт
 
-Отчёт по работе — `docs/report.md`, скриншоты — `docs/images/`
-(появятся на этапе оформления).
+Отчёт по работе — `docs/report.md`, скриншоты — `docs/images/`.
